@@ -29,9 +29,6 @@ if (len(facesProfile) != 0 ):
 elif (len(facesFront) != 0) :
     x, y, w, h = facesFront[0]
 
-
-
-
     
 roi_color = gray[y:y + h, x:x + w]
 roi_color = cv2.resize(roi_color, (48, 48))
