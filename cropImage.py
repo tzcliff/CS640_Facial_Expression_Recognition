@@ -6,8 +6,16 @@ imagePath = sys.argv[1]
 image = cv2.imread(imagePath)
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-faceCascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-faces = faceCascade.detectMultiScale(
+faceCascadeProfile = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_profileface.xml")
+faceCascadeFront = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+facesProfile = faceCascadeProfile.detectMultiScale(
+    gray,
+    scaleFactor=1.3,
+    minNeighbors=3,
+    minSize=(30, 30)
+)
+
+facesFront = faceCascadeFront.detectMultiScale(
     gray,
     scaleFactor=1.3,
     minNeighbors=3,
@@ -15,7 +23,14 @@ faces = faceCascade.detectMultiScale(
 )
 
 # print(faces)
-x, y, w, h = faces[0]
+
+if (len(facesProfile) != 0 ):
+    x, y, w, h = facesProfile[0]
+elif (len(facesFront) != 0) :
+    x, y, w, h = facesFront[0]
+
+
+
 
     
 roi_color = gray[y:y + h, x:x + w]
