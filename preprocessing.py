@@ -16,21 +16,23 @@ OUTPUT_CSV_HEADERS = ["emotion", "pixels", "Usage"]
 
 
 def cropImage(image):
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray = image
+    if len(image.shape) == 3:
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     faceCascadeProfile = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_profileface.xml")
     faceCascadeFront = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
     facesProfile = faceCascadeProfile.detectMultiScale(
         gray,
         scaleFactor=1.3,
-        minNeighbors=3,
+        minNeighbors=5,
         minSize=(30, 30)
     )
 
     facesFront = faceCascadeFront.detectMultiScale(
         gray,
         scaleFactor=1.3,
-        minNeighbors=3,
+        minNeighbors=5,
         minSize=(30, 30)
     )
 
@@ -39,7 +41,7 @@ def cropImage(image):
     elif len(facesFront) != 0:
         x, y, w, h = facesFront[0]
     else:
-        raise ValueError("Cannot recognize any face.")
+        return None
 
     grayFace = gray[y:y + h, x:x + w]
     grayFace = cv2.resize(grayFace, (48, 48))
@@ -50,14 +52,29 @@ def cropImage(image):
 def videoToImage(videoFile, desDir = ""):
     videoName = os.path.splitext(videoFile)[0]
     vidcap = cv2.VideoCapture(RAW_DATA_DIR + videoFile)
-    vidcap.read()
-    _, image = vidcap.read()
+    success = True
+    croppedImage = None
+
+    while success:
+        success, image = vidcap.read()
+
+        if not success:
+            break
+
+        croppedImage = cropImage(image)
+
+        if croppedImage is None:
+            continue
+        break
+
+    if croppedImage is None:
+        raise ValueError("Face not found.")
 
     if desDir != "":
         cv2.imwrite(os.path.join(desDir, "%s.jpg" % videoName), image)
         print("Converted %s to %s successfully!" % (videoName + ".mp4", videoName + ".jpg"))
 
-    return cropImage(image)
+    return croppedImage
 
 
 def loadData(csvFile):
@@ -84,13 +101,13 @@ def refactorData(csvFile):
     for i in range(len(dataList)):
         X = dataList[i][:, 0]
 
-        pixels = X
+        # pixels = X
 
-        # pixels = []
-        # for j in range(X.shape[0]):
-        #     # get image
-        #     pixel = videoToImage(X[j])
-        #     pixels.append(pixel)
+        pixels = []
+        for j in range(X.shape[0]):
+            # get image
+            pixel = videoToImage(X[j])
+            pixels.append(pixel)
 
         # 0-Negative, 1-Neutral, 2-Positive
         y = dataList[i][:, 1]
