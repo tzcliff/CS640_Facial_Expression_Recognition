@@ -20,27 +20,32 @@ def cropImage(image):
     if len(image.shape) == 3:
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    faceCascadeProfile = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_profileface.xml")
-    faceCascadeFront = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-    facesProfile = faceCascadeProfile.detectMultiScale(
-        gray,
-        scaleFactor=1.3,
-        minNeighbors=5,
-        minSize=(30, 30)
-    )
+    w, h = 0, 0
+    for i in range(3, 6):
+        faceCascadeProfile = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_profileface.xml")
+        faceCascadeFront = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+        facesProfile = faceCascadeProfile.detectMultiScale(
+            gray,
+            scaleFactor=1.3,
+            minNeighbors=i,
+            minSize=(30, 30)
+        )
 
-    facesFront = faceCascadeFront.detectMultiScale(
-        gray,
-        scaleFactor=1.3,
-        minNeighbors=5,
-        minSize=(30, 30)
-    )
+        facesFront = faceCascadeFront.detectMultiScale(
+            gray,
+            scaleFactor=1.3,
+            minNeighbors=i,
+            minSize=(30, 30)
+        )
 
-    if len(facesProfile) != 0:
-        x, y, w, h = facesProfile[0]
-    elif len(facesFront) != 0:
-        x, y, w, h = facesFront[0]
-    else:
+        if len(facesProfile) != 0:
+            x, y, w, h = facesProfile[0]
+            break
+        elif len(facesFront) != 0:
+            x, y, w, h = facesFront[0]
+            break
+
+    if w == 0 or h == 0:
         return None
 
     grayFace = gray[y:y + h, x:x + w]
@@ -107,7 +112,9 @@ def refactorData(csvFile):
         for j in range(X.shape[0]):
             # get image
             pixel = videoToImage(X[j])
-            pixels.append(pixel)
+            pixels.append(pixel.ravel())
+            if j == 15:
+                cv2.imwrite("1.jpg", pixel)
 
         # 0-Negative, 1-Neutral, 2-Positive
         y = dataList[i][:, 1]
