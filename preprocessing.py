@@ -4,6 +4,7 @@ import pandas as pd
 import cv2
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
+from sys import maxsize
 
 RAW_DATA_DIR = "presidential_videos/"
 DATA_DIR = "dataset/"
@@ -104,17 +105,19 @@ def refactorData(csvFile):
     dataList = loadData(csvFile)
     outputDf = pd.DataFrame(columns = OUTPUT_CSV_HEADERS)
     for i in range(len(dataList)):
+        print("%s Set\n" % CATEGORY_NAMES[i])
         X = dataList[i][:, 0]
-
-        # pixels = X
-
         pixels = []
+
+        np.set_printoptions(threshold=maxsize, linewidth=maxsize)
+
         for j in range(X.shape[0]):
             # get image
-            pixel = videoToImage(X[j])
-            pixels.append(pixel.ravel())
-            if j == 15:
-                cv2.imwrite("1.jpg", pixel)
+            print("Converting image %d" % j)
+            pixel = videoToImage(X[j]).ravel()
+            # convert numpy array to string
+            pixelStr = np.array2string(pixel)[2:-1]
+            pixels.append(pixelStr)
 
         # 0-Negative, 1-Neutral, 2-Positive
         y = dataList[i][:, 1]
@@ -125,7 +128,7 @@ def refactorData(csvFile):
 
         outputDf = pd.concat([outputDf, df], ignore_index=True)
 
-    outputDf.to_csv(OUTPUT_CSV_FILE)
+    outputDf.to_csv(OUTPUT_CSV_FILE, index=False)
 
 
 def refactorFolder(dataDir, csvFile):

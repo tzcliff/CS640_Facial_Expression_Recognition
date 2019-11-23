@@ -102,3 +102,11 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# project
+*.csv
+*.xml
+presidential_videos/
+fer2013_features
+img
+
