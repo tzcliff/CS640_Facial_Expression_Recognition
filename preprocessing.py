@@ -114,9 +114,9 @@ def refactorData(csvFile):
         for j in range(X.shape[0]):
             # get image
             print("Converting image %d" % j)
-            pixel = videoToImage(X[j]).ravel()
+            pixel = videoToImage(X[j]).ravel().astype(np.uint8)
             # convert numpy array to string
-            pixelStr = np.array2string(pixel)[2:-1]
+            pixelStr = " ".join(map(str, pixel.tolist()))
             pixels.append(pixelStr)
 
         # 0-Negative, 1-Neutral, 2-Positive
