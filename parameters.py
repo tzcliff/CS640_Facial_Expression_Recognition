@@ -27,12 +27,12 @@ class Network:
     use_batchnorm_after_fully_connected_layers = False
 
 class Hyperparams:
-    keep_prob = 0.956   # dropout = 1 - keep_prob
-    learning_rate = 0.016
-    learning_rate_decay = 0.864
+    keep_prob = 0.952#0.956   # dropout = 1 - keep_prob
+    learning_rate = 0.078#0.016
+    learning_rate_decay = 0.569#0.864
     decay_step = 50
     optimizer = 'momentum'  # {'momentum', 'adam', 'rmsprop', 'adagrad', 'adadelta'}
-    optimizer_param = 0.95   # momentum value for Momentum optimizer, or beta1 value for Adam
+    optimizer_param = 0.91#0.95   # momentum value for Momentum optimizer, or beta1 value for Adam
 
 class Training:
     batch_size = 128

@@ -1,0 +1,2 @@
+model_checkpoint_path: "C:\\Users\\qqq58\\Desktop\\BU Study\\640 AI\\project\\github\\CS640_Facial_Expression_Recognition\\best_model\\saved_model.bin"
+all_model_checkpoint_paths: "C:\\Users\\qqq58\\Desktop\\BU Study\\640 AI\\project\\github\\CS640_Facial_Expression_Recognition\\best_model\\saved_model.bin"
