@@ -107,6 +107,13 @@ venv.bak/
 *.csv
 *.xml
 presidential_videos/
-fer2013_features
+presidential_image/
 img
-
+best_model/
+checkpoints/
+logs/
+checkpoint*
+temp.jpg
+*.index
+*.meta
+*.npy
