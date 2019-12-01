@@ -55,11 +55,16 @@ def cropImage(image):
     return grayFace
 
 
-def videoToImage(videoFile, desDir = ""):
+def videoToImage(videoFile, desDir = "", crop=True):
     videoName = os.path.splitext(videoFile)[0]
     vidcap = cv2.VideoCapture(RAW_DATA_DIR + videoFile)
+
+    # get frame count
+    frameCnt = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
+    # set current frame at the middle of the video
+    vidcap.set(cv2.CAP_PROP_POS_FRAMES, frameCnt // 2)
     success = True
-    croppedImage = None
+    image = None
 
     while success:
         success, image = vidcap.read()
@@ -67,20 +72,21 @@ def videoToImage(videoFile, desDir = ""):
         if not success:
             break
 
-        croppedImage = cropImage(image)
+        if crop:
+            image = cropImage(image)
 
-        if croppedImage is None:
+        if image is None:
             continue
         break
 
-    if croppedImage is None:
+    if image is None:
         raise ValueError("Face not found.")
 
     if desDir != "":
         cv2.imwrite(os.path.join(desDir, "%s.jpg" % videoName), image)
         print("Converted %s to %s successfully!" % (videoName + ".mp4", videoName + ".jpg"))
 
-    return croppedImage
+    return image
 
 
 def loadData(csvFile):
@@ -161,7 +167,7 @@ def refactorFolder(dataDir, csvFile):
         for j in range(data.shape[0]):
             file = data[j, 0]
             idx = CLASS_NAMES.index(data[j, 1])
-            videoToImage(file, desDirs[idx])
+            videoToImage(file, desDirs[idx], crop=False)
             count += 1
 
     print("Total images: %s" % count)
@@ -171,4 +177,9 @@ def refactorFolder(dataDir, csvFile):
 # image = cv2.imread("joe.7wfrtnGV27k.00.jpg")
 # cropImage(image)
 
-refactorData(CSV_FILE)
+# for image generator in method 3
+refactorFolder(dataDir = DATA_DIR, csvFile = CSV_FILE)
+
+# if running on method 1 or 2, uncomment below lines
+# for kaggle compability
+# refactorData(CSV_FILE)
