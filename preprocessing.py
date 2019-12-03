@@ -55,38 +55,55 @@ def cropImage(image):
     return grayFace
 
 
-def videoToImage(videoFile, desDir = "", crop=True):
+def videoToImage(videoFile, desDir="", crop=True, label=None, category=None):
     videoName = os.path.splitext(videoFile)[0]
     vidcap = cv2.VideoCapture(RAW_DATA_DIR + videoFile)
 
-    # get frame count
     frameCnt = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
-    # set current frame at the middle of the video
-    vidcap.set(cv2.CAP_PROP_POS_FRAMES, frameCnt // 2)
-    success = True
-    image = None
+    step = 10
 
-    while success:
+    # capture frames by step
+    desiredFrames = [frame for frame in range(frameCnt) if (frame % step == 0)]
+
+    images = []
+    cnt = 0  # number of captured frames
+
+    for dFrame in desiredFrames:
+        vidcap.set(cv2.CAP_PROP_POS_FRAMES, dFrame)
         success, image = vidcap.read()
 
         if not success:
-            break
+            continue
+
+        # convert int64 to uint8
+        image = image.astype(np.uint8)
 
         if crop:
             image = cropImage(image)
+            if image is None:
+                continue
 
-        if image is None:
-            continue
-        break
+        if desDir != "":
+            imageFile = "%s.%d.jpg" % (videoName, cnt)
+            cv2.imwrite(os.path.join(desDir, imageFile), image)
+            print("%s - frame %d ---> %s..." % (videoFile, cnt + 1, imageFile))
+
+        # convert numpy array to string
+        imageStr = " ".join(map(str, image.ravel().tolist()))
+        images.append(imageStr)
+        cnt += 1
 
     if image is None:
         raise ValueError("Face not found.")
 
-    if desDir != "":
-        cv2.imwrite(os.path.join(desDir, "%s.jpg" % videoName), image)
-        print("Converted %s to %s successfully!" % (videoName + ".mp4", videoName + ".jpg"))
+    labels = np.repeat(label, cnt).astype(np.uint8)
+    cates = np.repeat(category, cnt)
 
-    return image
+    newDf = pd.DataFrame({0: labels,
+                         1: images,
+                         2: cates})
+    newDf[0] = newDf[0].astype(np.uint8)
+    return cnt, newDf
 
 
 def loadData(csvFile):
@@ -109,31 +126,23 @@ def loadData(csvFile):
 
 def refactorData(csvFile):
     dataList = loadData(csvFile)
-    outputDf = pd.DataFrame(columns = OUTPUT_CSV_HEADERS)
+    outputDf = pd.DataFrame()
     for i in range(len(dataList)):
         print("%s Set\n" % CATEGORY_NAMES[i])
         X = dataList[i][:, 0]
-        pixels = []
-
-        np.set_printoptions(threshold=maxsize, linewidth=maxsize)
-
-        for j in range(X.shape[0]):
-            # get image
-            print("Converting image %d" % j)
-            pixel = videoToImage(X[j]).ravel().astype(np.uint8)
-            # convert numpy array to string
-            pixelStr = " ".join(map(str, pixel.tolist()))
-            pixels.append(pixelStr)
 
         # 0-Negative, 1-Neutral, 2-Positive
         y = dataList[i][:, 1]
-        yOneHot = LabelEncoder().fit_transform(y)
-        df = pd.DataFrame([yOneHot, pixels]).T
-        df.columns = OUTPUT_CSV_HEADERS[:2]
-        df[OUTPUT_CSV_HEADERS[-1]] = CATEGORY_NAMES[i]
+        yLabel = LabelEncoder().fit_transform(y)
 
-        outputDf = pd.concat([outputDf, df], ignore_index=True)
+        for j in range(X.shape[0]):
+            print("video - %s" % X[j], end=" ----> ")
+            cnt, newDf = videoToImage(X[j], label=yLabel[j], category=CATEGORY_NAMES[i])
+            outputDf = pd.concat([outputDf, newDf], axis=0, ignore_index=True)
+            print("%d images" % cnt)
+            input()
 
+    outputDf.columns = OUTPUT_CSV_HEADERS
     outputDf.to_csv(OUTPUT_CSV_FILE, index=False)
 
 
@@ -178,8 +187,8 @@ def refactorFolder(dataDir, csvFile):
 # cropImage(image)
 
 # for image generator in method 3
-refactorFolder(dataDir = DATA_DIR, csvFile = CSV_FILE)
+# refactorFolder(dataDir = DATA_DIR, csvFile = CSV_FILE)
 
 # if running on method 1 or 2, uncomment below lines
 # for kaggle compability
-# refactorData(CSV_FILE)
+refactorData(CSV_FILE)
