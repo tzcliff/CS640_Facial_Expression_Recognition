@@ -1,4 +1,5 @@
 import os
+import sys
 import numpy as np
 import pandas as pd
 import cv2
@@ -70,9 +71,9 @@ def videoToImage(videoFile, desDir="", crop=True, label=None, category=None):
 
     for dFrame in desiredFrames:
         vidcap.set(cv2.CAP_PROP_POS_FRAMES, dFrame)
-        success, image = vidcap.read()
+        _, image = vidcap.read()
 
-        if not success:
+        if image is None:
             continue
 
         # convert int64 to uint8
@@ -87,14 +88,17 @@ def videoToImage(videoFile, desDir="", crop=True, label=None, category=None):
             imageFile = "%s.%d.jpg" % (videoName, cnt)
             cv2.imwrite(os.path.join(desDir, imageFile), image)
             print("%s - frame %d ---> %s..." % (videoFile, cnt + 1, imageFile))
-
-        # convert numpy array to string
-        imageStr = " ".join(map(str, image.ravel().tolist()))
-        images.append(imageStr)
+        else:
+            # convert numpy array to string
+            imageStr = " ".join(map(str, image.ravel().tolist()))
+            images.append(imageStr)
         cnt += 1
 
-    if image is None:
+    if cnt == 0:
         raise ValueError("Face not found.")
+
+    if (label is None) or (category is None):
+        return
 
     labels = np.repeat(label, cnt).astype(np.uint8)
     cates = np.repeat(category, cnt)
@@ -137,10 +141,10 @@ def refactorData(csvFile):
 
         for j in range(X.shape[0]):
             print("video - %s" % X[j], end=" ----> ")
+            sys.stdout.flush()  # flush print buffer
             cnt, newDf = videoToImage(X[j], label=yLabel[j], category=CATEGORY_NAMES[i])
             outputDf = pd.concat([outputDf, newDf], axis=0, ignore_index=True)
             print("%d images" % cnt)
-            input()
 
     outputDf.columns = OUTPUT_CSV_HEADERS
     outputDf.to_csv(OUTPUT_CSV_FILE, index=False)
@@ -182,13 +186,11 @@ def refactorFolder(dataDir, csvFile):
     print("Total images: %s" % count)
 
 
-# test cropImage function
-# image = cv2.imread("joe.7wfrtnGV27k.00.jpg")
-# cropImage(image)
+choice = int(sys.argv[1])
 
-# for image generator in method 3
-# refactorFolder(dataDir = DATA_DIR, csvFile = CSV_FILE)
-
-# if running on method 1 or 2, uncomment below lines
-# for kaggle compability
-refactorData(CSV_FILE)
+if choice == 1:
+    refactorData(CSV_FILE)
+elif choice == 2:
+    refactorFolder(dataDir=DATA_DIR, csvFile=CSV_FILE)
+else:
+    raise ValueError("the parameter must be 1 or 2!")
