@@ -185,6 +185,10 @@ def refactorFolder(dataDir, csvFile):
     print("Total images: %s" % total)
 
 
+if len(sys.argv) == 1:
+    raise ValueError("No parameter detected. Please use python preprocessing.py [choice] "
+                     "(1 for model 1; 2 for model 2)!")
+
 choice = int(sys.argv[1])
 
 if choice == 1:
