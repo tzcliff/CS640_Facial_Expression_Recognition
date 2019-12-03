@@ -67,6 +67,7 @@ def videoToImage(videoFile, desDir="", crop=True, label=None, category=None):
 
     images = []
     cnt = 0  # number of captured frames
+    MAX_CAPTURE_FRAMES = 10
 
     for dFrame in desiredFrames:
         vidcap.set(cv2.CAP_PROP_POS_FRAMES, dFrame)
@@ -92,6 +93,8 @@ def videoToImage(videoFile, desDir="", crop=True, label=None, category=None):
             imageStr = " ".join(map(str, image.ravel().tolist()))
             images.append(imageStr)
         cnt += 1
+        if cnt == MAX_CAPTURE_FRAMES:
+            break
 
     if cnt == 0:
         raise ValueError("Face not found.")
