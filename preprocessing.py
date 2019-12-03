@@ -5,7 +5,6 @@ import pandas as pd
 import cv2
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
-from sys import maxsize
 
 RAW_DATA_DIR = "presidential_videos/"
 DATA_DIR = "dataset/"
