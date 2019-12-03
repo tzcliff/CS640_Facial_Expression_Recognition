@@ -97,7 +97,7 @@ def videoToImage(videoFile, desDir="", crop=True, label=None, category=None):
         raise ValueError("Face not found.")
 
     if (label is None) or (category is None):
-        return
+        return cnt
 
     labels = np.repeat(label, cnt).astype(np.uint8)
     cates = np.repeat(category, cnt)
@@ -165,7 +165,7 @@ def refactorFolder(dataDir, csvFile):
 
     dataList = loadData(csvFile)
 
-    count = 0
+    total = 0
     for i in range(len(dataList)):
         desDirs = []
         # create new folder by class
@@ -179,10 +179,10 @@ def refactorFolder(dataDir, csvFile):
         for j in range(data.shape[0]):
             file = data[j, 0]
             idx = CLASS_NAMES.index(data[j, 1])
-            videoToImage(file, desDirs[idx], crop=False)
-            count += 1
+            cnt = videoToImage(file, desDirs[idx], crop=False)
+            total += cnt
 
-    print("Total images: %s" % count)
+    print("Total images: %s" % total)
 
 
 choice = int(sys.argv[1])
