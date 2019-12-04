@@ -97,7 +97,8 @@ def videoToImage(videoFile, desDir="", crop=True, label=None, category=None):
             break
 
     if cnt == 0:
-        raise ValueError("Face not found.")
+        # FACE NOT FOUND
+        return 0, None
 
     if (label is None) or (category is None):
         return cnt
